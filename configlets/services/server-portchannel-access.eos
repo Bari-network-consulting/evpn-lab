@@ -1,0 +1,26 @@
+!
+! =========================================================
+! Server Access: LACP Port-Channel (active/active links)
+! Applies to: any leaf that has a dual-homed server to the same leaf
+! Variables required:
+!  - {{SVR_PO}}      (e.g., 10, 20, 30, 40)
+!  - {{SVR_E1}}      (e.g., Ethernet3)
+!  - {{SVR_E2}}      (e.g., Ethernet4)
+!  - {{ACCESS_VLAN}} (10 on LF1/LF3, 20 on LF2/LF4)
+! =========================================================
+!
+interface Port-Channel{{SVR_PO}}
+ description Server-LACP
+ switchport
+ switchport mode access
+ switchport access vlan {{ACCESS_VLAN}}
+ spanning-tree portfast
+!
+interface {{SVR_E1}}
+ description Server-LACP-link1
+ channel-group {{SVR_PO}} mode active
+!
+interface {{SVR_E2}}
+ description Server-LACP-link2
+ channel-group {{SVR_PO}} mode active
+!
