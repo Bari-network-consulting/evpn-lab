@@ -1,1 +1,48 @@
+!
+! =========================================================
+! L3 EVPN Tenant: VRF BLUE
+! - VRF-VNI: 50000 (L3 VNI)
+! - VLAN 20 -> VNI 20020 (L2 segment inside VRF)
+! - Anycast GW: 192.168.20.1/24 (on LF2 and LF4)
+! Purpose: Server2 (LF2) <-> Server4 (LF4) routed reachability via EVPN Type-5
+! Applies to: LF2, LF4
+! =========================================================
+!
+vrf instance BLUE
+!
+! Why: enable L3 routing table for VRF BLUE.
+ip routing vrf BLUE
+!
+vlan 20
+ name BLUE-VLAN20
+!
+interface Vlan20
+ vrf BLUE
+ ! Why: Anycast gateway. Same IP on both leafs so hosts use local default gateway.
+ ip address virtual 192.168.20.1/24
+!
+interface Vxlan1
+ ! Why: L3 VNI binds the VRF to VXLAN EVPN for inter-subnet routing (Type-5).
+ vxlan vrf BLUE vni 50000
+ ! Why: VLAN-to-VNI mapping for the L2 segment that belongs to this VRF.
+ vxlan vlan 20 vni 20020
+!
+router bgp {{AS}}
+!
+ ! Why: VRF EVPN section advertises/learns IP prefixes via EVPN (Type-5).
+ vrf BLUE
+  ! Why: Unique RD per VTEP for this VRF.
+  rd {{RID}}:50000
+  ! Why: Import/export RTs for Type-5 route exchange between VTEPs in this VRF.
+  route-target import evpn 50000:50000
+  route-target export evpn 50000:50000
+  ! Why: Advertise connected routes in VRF BLUE (e.g., 192.168.20.0/24) into EVPN.
+  redistribute connected
+!
+ ! Why: Still need per-VLAN EVPN config for MAC learning inside VLAN20 (Type-2).
+ vlan 20
+  rd {{RID}}:20
+  route-target both 20:20
+  redistribute learned
+!
 
