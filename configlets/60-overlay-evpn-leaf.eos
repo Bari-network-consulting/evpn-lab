@@ -1,0 +1,37 @@
+!
+! =========================================================
+! EVPN Overlay - Leafs as RR Clients
+! Applies to: LF1..LF4
+! =========================================================
+!
+router bgp {{AS}}
+!
+ ! Why: leaf keeps its own BGP process (underlay is eBGP in leaf’s unique AS).
+ ! But for EVPN overlay, we will peer to spines’ loopbacks and activate EVPN AF.
+ router-id {{RID}}
+!
+ ! Why: prevents accidental activation of IPv4-unicast on these overlay neighbors.
+ no bgp default ipv4-unicast
+!
+ ! -------------------------------
+ ! EVPN iBGP neighbors to spines’ Loopback0
+ ! -------------------------------
+ !
+ ! Why: EVPN control-plane rides these sessions.
+ ! update-source Loopback0 ensures the session source is stable and reachable via underlay.
+ neighbor {{SPINE1_RID}} remote-as 65000
+ neighbor {{SPINE1_RID}} update-source Loopback0
+ neighbor {{SPINE2_RID}} remote-as 65000
+ neighbor {{SPINE2_RID}} update-source Loopback0
+!
+ address-family evpn
+  ! Why: explicitly enable EVPN AF to each spine (RR).
+  neighbor {{SPINE1_RID}} activate
+  neighbor {{SPINE2_RID}} activate
+!
+ ! Optional (rarely needed in labs):
+ ! Why: If you use features where leaf must set/keep next-hop a certain way,
+ ! you might tune next-hop behavior, but usually not necessary in this design.
+ ! address-family evpn
+ !  next-hop-self
+!
