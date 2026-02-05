@@ -1,1 +1,7 @@
+hostname {{hostname}}
+!
+ip routing
+!
+interface Loopback0
+ ip address {{RID}}/32
 
