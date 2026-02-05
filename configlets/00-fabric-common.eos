@@ -1,1 +1,7 @@
+service routing protocols model multi-agent
+!
+spanning-tree mode mstp
+!
+interface Vxlan1
+ description VXLAN Tunnel Interface
 
