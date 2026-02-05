@@ -1,0 +1,55 @@
+!
+! =========================================================
+! EVPN Overlay - Spines as Route Reflectors (RR)
+! Applies to: SP1, SP2
+! =========================================================
+!
+router bgp 65000
+!
+ ! Why: stable BGP identity (ties to Loopback0). Prevents issues if a physical IP changes.
+ router-id {{RID}}
+!
+ ! Why: we keep the underlay IPv4 BGP and overlay EVPN separate. This prevents
+ ! accidental activation of IPv4-unicast on neighbors unless explicitly enabled.
+ no bgp default ipv4-unicast
+!
+ ! -------------------------------
+ ! iBGP EVPN neighbors to leaf Loopback0 (RIDs)
+ ! -------------------------------
+ !
+ ! Why: EVPN control-plane is carried over these iBGP sessions (not the underlay links).
+ ! update-source Loopback0 makes the session stable and independent from any uplink failure.
+ neighbor 10.0.0.11 remote-as 65000
+ neighbor 10.0.0.11 update-source Loopback0
+ neighbor 10.0.0.12 remote-as 65000
+ neighbor 10.0.0.12 update-source Loopback0
+ neighbor 10.0.0.13 remote-as 65000
+ neighbor 10.0.0.13 update-source Loopback0
+ neighbor 10.0.0.14 remote-as 65000
+ neighbor 10.0.0.14 update-source Loopback0
+!
+ ! -------------------------------
+ ! EVPN Address-Family
+ ! -------------------------------
+ address-family evpn
+!
+  ! Why: explicitly turn on EVPN for each neighbor (since we disabled default AFs above).
+  neighbor 10.0.0.11 activate
+  neighbor 10.0.0.12 activate
+  neighbor 10.0.0.13 activate
+  neighbor 10.0.0.14 activate
+!
+  ! Why: THIS is the key. iBGP does not re-advertise iBGP-learned routes by default.
+  ! Route reflection makes spines legally “reflect” EVPN routes between leaf clients.
+  neighbor 10.0.0.11 route-reflector-client
+  neighbor 10.0.0.12 route-reflector-client
+  neighbor 10.0.0.13 route-reflector-client
+  neighbor 10.0.0.14 route-reflector-client
+!
+ ! Optional but often used:
+ ! Why: keep EVPN next-hop behavior consistent. In many EVPN designs, leaves
+ ! advertise routes with VTEP as next-hop; spines generally should NOT rewrite it.
+ ! (You can leave this out for most labs; include only if you see next-hop issues.)
+ ! address-family evpn
+ !  next-hop-unchanged
+!
