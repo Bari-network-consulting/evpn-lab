@@ -1,1 +1,26 @@
+!
+! =========================================================
+! L2 EVPN Service: VLAN 10 <-> VNI 10010
+! Purpose: Server1 (LF1) <-> Server3 (LF3) Layer-2 adjacency
+! Applies to: LF1, LF3
+! =========================================================
+!
+vlan 10
+ name L2-EVPN-VLAN10
+!
+! Why: Map VLAN 10 to a VXLAN VNI so it can be bridged over the IP fabric.
+interface Vxlan1
+ vxlan vlan 10 vni 10010
+!
+router bgp {{AS}}
+!
+ ! Why: Per-VLAN EVPN settings define how MAC/IP routes are advertised in EVPN.
+ vlan 10
+  ! Why: Route Distinguisher must be unique per VTEP for that VLAN.
+  rd {{RID}}:10
+  ! Why: Route-Targets define which VTEPs import/export this EVPN MAC/IP NLRI.
+  route-target both 10:10
+  ! Why: Advertise locally learned MACs/ARP (MAC/IP) into EVPN (Type-2 routes).
+  redistribute learned
+!
 
