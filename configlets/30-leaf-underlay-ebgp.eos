@@ -1,0 +1,28 @@
+!
+! === Underlay uplinks to spines ===
+!
+interface Ethernet1
+ description to SPINE1
+ no switchport
+ ip address {{UPLINK1_IP}}
+!
+interface Ethernet2
+ description to SPINE2
+ no switchport
+ ip address {{UPLINK2_IP}}
+!
+!
+! === BGP IPv4 Underlay ===
+!
+router bgp {{AS}}
+ router-id {{RID}}
+ no bgp default ipv4-unicast
+!
+ neighbor {{UPLINK1_PEER}} remote-as 65000
+ neighbor {{UPLINK2_PEER}} remote-as 65000
+!
+ address-family ipv4
+  neighbor {{UPLINK1_PEER}} activate
+  neighbor {{UPLINK2_PEER}} activate
+  network {{RID}}/32
+  network {{VTEP}}/32
