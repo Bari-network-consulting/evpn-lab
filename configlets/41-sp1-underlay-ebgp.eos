@@ -1,0 +1,44 @@
+!
+! === SP1 Underlay Interfaces to Leafs (adjust interface numbers if needed) ===
+!
+interface Ethernet1
+ description to LF1
+ no switchport
+ ip address 172.16.0.0/31
+!
+interface Ethernet2
+ description to LF2
+ no switchport
+ ip address 172.16.0.4/31
+!
+interface Ethernet3
+ description to LF3
+ no switchport
+ ip address 172.16.0.8/31
+!
+interface Ethernet4
+ description to LF4
+ no switchport
+ ip address 172.16.0.12/31
+!
+!
+! === eBGP Underlay (SPINE AS 65000) ===
+!
+router bgp 65000
+ router-id 10.0.0.1
+ no bgp default ipv4-unicast
+!
+ neighbor 172.16.0.1 remote-as 65101
+ neighbor 172.16.0.5 remote-as 65102
+ neighbor 172.16.0.9 remote-as 65103
+ neighbor 172.16.0.13 remote-as 65104
+!
+ address-family ipv4
+  neighbor 172.16.0.1 activate
+  neighbor 172.16.0.5 activate
+  neighbor 172.16.0.9 activate
+  neighbor 172.16.0.13 activate
+!
+! (Optional) advertise spine Lo0 into underlay if you want it visible everywhere
+! address-family ipv4
+!  network 10.0.0.1/32
